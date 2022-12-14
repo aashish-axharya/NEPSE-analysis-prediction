@@ -3,9 +3,11 @@ import requests
 import os
 import pandas as pd
 import logging
+import ctypes    
 
 #creating a basic log to check if automation is working
 logging.basicConfig(filename='scrape.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+Messagebox = ctypes.windll.user32.MessageBoxW
 
 def scrape():
     # get data from sharesansar and put it in a dataframe
@@ -46,7 +48,9 @@ def to_csv():
     # check if scraping has already been done, if not, use the scrape method and put the contents in a file
             df = scrape()
             df.to_csv(file, index=False)
-            logging.debug('Scraping success')
+            logging.debug('Scraping success \n')
+            #for windows pop up
+            Messagebox(0, "Success", "Scraping", 1)
             
 #setting basics
 try:
@@ -60,6 +64,7 @@ try:
     else:
         print('File already exists')
         logging.debug('Scraping failed, file already exists \n')
+        Messagebox(0, "Failed", "Scraping", 1)
 except:
     logging.debug('Connection failed')
 
