@@ -3,6 +3,7 @@ import requests
 import os
 import pandas as pd
 import logging
+import ctypes  # An included library with Python install.   
 
 #creating a basic log to check if automation is working
 logging.basicConfig(filename='scrape.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -46,7 +47,8 @@ def to_csv():
     # check if scraping has already been done, if not, use the scrape method and put the contents in a file
             df = scrape()
             df.to_csv(file, index=False)
-            logging.debug('Scraping success')
+            logging.debug('Scraping success \n')
+            ctypes.windll.user32.MessageBoxW(0, "Success", "Scraping", 1)
             
 #setting basics
 try:
@@ -60,6 +62,7 @@ try:
     else:
         print('File already exists')
         logging.debug('Scraping failed, file already exists \n')
+        ctypes.windll.user32.MessageBoxW(0, "Failed", "Scraping", 1)
 except:
-    logging.debug('Connection failed')
+    logging.debug('Connection failed \n')
 
