@@ -3,10 +3,14 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
+import os
 
 # Load the stock data
-
-df = pd.read_csv() #Need to clean data and set individual data for each stock
+path = 'scrape/data-old'
+files = os.listdir(path)
+df = pd.DataFrame()
+for file in files:
+    df = df.append(pd.read_csv(os.path.join(path, file)))
 
 # Extract the closing price and convert it to a numpy array
 close_prices = df['Close'].values
@@ -32,7 +36,7 @@ def create_dataset(data, time_steps=1):
         y.append(data[i + time_steps, 0])
     return np.array(X), np.array(y)
 
-time_steps = 5
+time_steps = 1000
 X_train, y_train = create_dataset(train_data, time_steps)
 X_test, y_test = create_dataset(test_data, time_steps)
 
@@ -48,11 +52,12 @@ model.add(Dense(1))
 model.compile(loss='mean_squared_error', optimizer='adam')
 
 # Train the model
-model.fit(X_train, y_train, epochs=100, batch_size=32, verbose=2)
+model.fit(X_train, y_train, epochs=20, batch_size=32, verbose=2)
 
 # Test the model
 predictions = model.predict(X_test)
 predictions = scaler.inverse_transform(predictions)
+print(predictions)
 
 # Calculate the root mean squared error
 rmse = np.sqrt(np.mean(((predictions - y_test) ** 2)))
