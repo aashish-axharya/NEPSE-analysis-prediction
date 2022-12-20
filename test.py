@@ -6,7 +6,7 @@ from keras.layers import Dense, LSTM
 
 # Load the stock data
 
-df = pd.read_csv()
+df = pd.read_csv() #Need to clean data and set individual data for each stock
 
 # Extract the closing price and convert it to a numpy array
 close_prices = df['Close'].values
