@@ -13,7 +13,7 @@ import os
 #     df = df.append(pd.read_csv(os.path.join(path, file)).dropna())
 #     df.reset_index(drop=True)
 
-df = pd.read_csv('scrape/test/individual/ADBL.csv').dropna()
+df = pd.read_csv('scrape/test/ADBL.csv').dropna()
 
 # Extract the closing price and convert it to a numpy array
 close_prices = df['Close'].values
