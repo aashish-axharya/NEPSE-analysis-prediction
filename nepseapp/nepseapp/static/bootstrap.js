@@ -1,0 +1,3 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" integrity="sha512-NH5AF1yOFgSwlIFBwQjxdCc7nTkPQY9D+uhdZCshpLCTnuTNbx/Ta0PbtEGwzgG+V7Tm8kmFeYSG7mJf6DCz+Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<!-- Feather Icons CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.css" integrity="sha512-vcLjQEBFvBygzW+H8rJ62dG3jyVEvB1WUZ8fbtb7jJbZVDsU6M0vcQ8jK7njqhOT1kOumV

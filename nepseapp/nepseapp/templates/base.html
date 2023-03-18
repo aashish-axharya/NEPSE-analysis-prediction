@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}NepseApp{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" integrity="sha512-NH5AF1yOFgSwlIFBwQjxdCc7nTkPQY9D+uhdZCshpLCTnuTNbx/Ta0PbtEGwzgG+V7Tm8kmFeYSG7mJf6DCz+Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<!-- Feather Icons CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.css" integrity="sha512-vcLjQEBFvBygzW+H8rJ62dG3jyVEvB1WUZ8fbtb7jJbZVDsU6M0vcQ8jK7njqhOT1kOumV
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="row">
+    <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+      <div class="sidebar-sticky">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link active" href="#">
+              <span data-feather="home"></span>
+              Dashboard <span class="sr-only">(current)</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span data-feather="file"></span>
+              Orders
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span data-feather="shopping-cart"></span>
+              Products
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span data-feather="users"></span>
+              Customers
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span data-feather="bar-chart-2"></span>
+              Reports
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span data-feather="layers"></span>
+              Integrations
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    {% if user.is_authenticated %}
+    <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   <i class="fa fa-user" aria-hidden="true"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-right">
+                <div class="dropdown-item" style="color: cornflowerblue">{{ user|capfirst }}</div>
+                <a class="dropdown-item" href="#">Settings</a>
+                <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+            </ul>
+        </li>
+    </ul>
+    {% endif %}
+
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+        <h1 class="h2">Dashboard</h1>
+      </div>
+      <div class="container">
+        {% block content %}
+        {% endblock %}
+      </div>
+    </main>
+  </div>
+</div>
+</body>
