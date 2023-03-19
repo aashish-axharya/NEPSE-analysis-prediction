@@ -84,14 +84,14 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">
+              <a class="nav-link" href="{% url 'analysis' %}">
                 <i class="material-icons">analytics</i>
                 Analysis
               </a>
             </li>
             {% if user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link" href="#">
+              <a class="nav-link" href="{% url 'predictions' %}">
                 <i class="material-icons">trending_up</i>
                 Predictions
               </a>
@@ -104,7 +104,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">
+              <a class="nav-link" href="{% url 'blog' %}">
                 <i class="material-icons">article</i>
                 Blogs
               </a>

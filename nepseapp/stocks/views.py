@@ -80,3 +80,12 @@ def getStockData(request):
             data.append(stock_data)
     StockData.objects.bulk_create([StockData(**item) for item in data])
     return render(request, 'index.html', {'data': data})
+
+def analysis(request):
+    return render(request, 'analysis.html')
+
+def blog(request):
+    return render(request, 'blog.html')
+
+def predictions(request):
+    return render(request, 'predictions.html')
