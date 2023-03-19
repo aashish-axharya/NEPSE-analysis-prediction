@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
+from django.contrib.auth import logout as auth_logout
+from django.contrib import messages
 from .models import StockData
 import csv
 from .models import StockData
@@ -9,21 +11,25 @@ def index(request):
     stocks = StockData.objects.all()
     return render(request, 'index.html', {'stocks': stocks})
 
+
 def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
             username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
             login(request, user)
-            return redirect('/')
+            messages.success(request, f"Account created successfully for {username}!")
+            return redirect('index')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.capitalize()}: {error}")
     else:
         form = UserCreationForm()
     return render(request, 'signup.html', {'form': form})
 
-def login(request):
+def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -31,10 +37,14 @@ def login(request):
         if user is not None:
             login(request, user)
             return redirect('index')
+        else:
+            # Add a message to inform the user that the login failed
+            message = 'Invalid username or password'
+            return render(request, 'login.html', {'message': message})
     return render(request, 'login.html')
 
 def logout(request):
-    logout(request)
+    auth_logout(request)
     return redirect('index')
 
 def getStockData(request):
