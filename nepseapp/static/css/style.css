@@ -41,9 +41,14 @@ body {
   bottom: 0;
   left: 0;
   z-index: 100;
+  overflow-y: auto;
   padding: 48px 0 0;
   background-color: #212529;
-  color: #fff;
+  width:300px;
+}
+
+.content-wrapper {
+  margin-left: 300px;
 }
 
 .sidebar-sticky {
@@ -55,9 +60,9 @@ body {
   overflow-y: auto;
 }
 
-.sidebar a {
+/* .sidebar a {
   color: #fff;
-}
+} */
 
 .sidebar .nav-link i {
   margin-right: 0.5rem;
@@ -93,4 +98,10 @@ main {
 .container-fluid {
   margin-top: 20px;
   margin-bottom: 20px;
+}
+
+.stocktable{
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left:0;
 }

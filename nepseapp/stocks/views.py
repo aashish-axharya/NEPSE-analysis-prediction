@@ -4,13 +4,21 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout as auth_logout
 from django.contrib import messages
 from .models import StockData
-import csv
+import csv, os
 from .models import StockData
 
-def index(request):
-    stocks = StockData.objects.all()
-    return render(request, 'index.html', {'stocks': stocks})
+def get_file_choices():
+    file_list = os.listdir(os.path.join('static', 'data'))
+    file_choices = []
+    for file in file_list:
+        if file.endswith('.csv'):
+            file_choices.append(file)
+    return file_choices
 
+def index(request):
+    file_choices = get_file_choices()
+    stocks = StockData.objects.all()
+    return render(request, 'index.html', {'stocks': stocks, 'file_choices': file_choices})
 
 def signup(request):
     if request.method == 'POST':
@@ -47,8 +55,8 @@ def logout(request):
     auth_logout(request)
     return redirect('index')
 
-def getStockData(request):
-    csv_file = "static/data/2023-03-15.csv"
+def getStockData(request, file_name):
+    csv_file = os.path.join('static/data', file_name)
     data = []
     with open(csv_file, 'r') as file:
         reader = csv.DictReader(file)
@@ -79,7 +87,8 @@ def getStockData(request):
             }
             data.append(stock_data)
     StockData.objects.bulk_create([StockData(**item) for item in data])
-    return render(request, 'index.html', {'data': data})
+    stocks = StockData.objects.all()
+    return render(request, 'index.html', {'data': data, 'stocks': stocks})
 
 def analysis(request):
     return render(request, 'analysis.html')

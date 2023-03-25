@@ -25,4 +25,5 @@ urlpatterns = [
     path('analysis/', views.analysis, name='analysis'),
     path('predictions/', views.predictions, name='predictions'),
     path('blog/', views.blog, name='blog'),
+    path('getStockData/<str:file_name>', views.getStockData, name='getStockData'),
 ]

@@ -1,11 +1,23 @@
 {% extends "base.html" %}
 {% block title %}Stocks{% endblock %}
 {% block content %}
-<div class="row">
+<div class="container-fluid">
+  <div class="row">
     <div class="col-md-12">
-        <h3 class="display-4 mb-4">Stocks</h3>
-        <div class="table-responsive">
-        <table class="table table-bordered table-striped" id="stocksTable">
+      <h3 class="display-4 mb-4">Stocks</h3>
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Select Date
+        </button>
+        <div class="dropdown-menu" aria-labelledby="fileDropdown">
+          {% for file in file_choices %}
+          <a class="dropdown-item" href="{% url 'getStockData' file %}">{{ file }}</a>
+          {% endfor %}
+        </div>
+      </div>      
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped stocktable" id="stocksTable">
           <thead>
             <tr>
               <th>SN</th>
@@ -34,43 +46,35 @@
           </thead>
           <tbody>
             {% for stock in stocks %}
-              <tr>
-                <td>{{ stock.sn }}</td>
-                <td>{{ stock.symbol }}</td>
-                <td>{{ stock.company_name }}</td>
-                <td>{{ stock.conf }}</td>
-                <td>{{ stock.open }}</td>
-                <td>{{ stock.high }}</td>
-                <td>{{ stock.low }}</td>
-                <td>{{ stock.close }}</td>
-                <td>{{ stock.vwap }}</td>
-                <td>{{ stock.volume }}</td>
-                <td>{{ stock.prev_close }}</td>
-                <td>{{ stock.turnover }}</td>
-                <td>{{ stock.trans }}</td>
-                <td>{{ stock.diff }}</td>
-                <td>{{ stock.range }}</td>
-                <td>{{ stock.diff_percent }}</td>
-                <td>{{ stock.range_percent }}</td>
-                <td>{{ stock.vwap_percent }}</td>
-                <td>{{ stock.days120 }}</td>
-                <td>{{ stock.days180 }}</td>
-                <td>{{ stock.weeks52_high }}</td>
-                <td>{{ stock.weeks52_low }}</td>
-              </tr>
+            <tr>
+              <td>{{ stock.sn }}</td>
+              <td>{{ stock.symbol }}</td>
+              <td>{{ stock.company_name }}</td>
+              <td>{{ stock.conf }}</td>
+              <td>{{ stock.open }}</td>
+              <td>{{ stock.high }}</td>
+              <td>{{ stock.low }}</td>
+              <td>{{ stock.close }}</td>
+              <td>{{ stock.vwap }}</td>
+              <td>{{ stock.volume }}</td>
+              <td>{{ stock.prev_close }}</td>
+              <td>{{ stock.turnover }}</td>
+              <td>{{ stock.trans }}</td>
+              <td>{{ stock.diff }}</td>
+              <td>{{ stock.range }}</td>
+              <td>{{ stock.diff_percent }}</td>
+              <td>{{ stock.range_percent }}</td>
+              <td>{{ stock.vwap_percent }}</td>
+              <td>{{ stock.days120 }}</td>
+              <td>{{ stock.days180 }}</td>
+              <td>{{ stock.weeks52_high }}</td>
+              <td>{{ stock.weeks52_low }}</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
-        <div class="d-flex justify-content-center">
-          {% if stocks.has_previous %}
-            <a class="btn btn-primary mr-2" href="?page={{ stocks.previous_page_number }}">Previous</a>
-          {% endif %}
-          {% if stocks.has_next %}
-            <a class="btn btn-primary" href="?page={{ stocks.next_page_number }}">Next</a>
-          {% endif %}
-        </div>
-      </div>
       </div>
     </div>
-
-  {% endblock %}
+  </div>
+</div>
+{% endblock %}

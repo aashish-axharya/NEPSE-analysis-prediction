@@ -27,6 +27,7 @@
     .nav-link:hover {
       color: #572F89;
     }
+
   </style>
 
 
@@ -68,7 +69,7 @@
   </nav>
   <div class="container-fluid">
     <div class="row">
-      <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+      <nav class="col-md-12 d-none d-md-block bg-dark sidebar">
         <div class="sidebar-sticky">
           <ul class="nav flex-column">
             <li class="nav-item">
@@ -112,13 +113,14 @@
           </ul>
         </div>
       </nav>
-
-      <main role="main" class="col-md-10 ml-sm-auto col-lg-10 pt-3 px-4">
+      <main role="main" class="col-md-12 pt-3 px-4">
         <div class="container-fluid">
           <div class="row justify-content-center">
             <div class="col-md-12">
+              <div class="content-wrapper">
               {% block content %}
               {% endblock %}
+            </div>
             </div>
           </div>
         </div>
