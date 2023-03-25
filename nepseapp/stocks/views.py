@@ -86,9 +86,9 @@ def getStockData(request, file_name):
                 'weeks52_low': row['52 weeks low']
             }
             data.append(stock_data)
-    StockData.objects.bulk_create([StockData(**item) for item in data])
-    stocks = StockData.objects.all()
-    return render(request, 'index.html', {'data': data, 'stocks': stocks})
+    StockData.objects.all().delete()  # Delete all existing objects
+    StockData.objects.bulk_create([StockData(**item) for item in data])  # Create new objects from CSV data
+    return redirect('index')
 
 def analysis(request):
     return render(request, 'analysis.html')
