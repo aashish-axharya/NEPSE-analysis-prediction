@@ -23,3 +23,10 @@ class StockData(models.Model):
     days180 = models.CharField(max_length=10)
     weeks52_high = models.CharField(max_length=10)
     weeks52_low = models.CharField(max_length=10)
+
+
+class BlogPost(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    author = models.CharField(max_length=100)
+    created_date = models.DateTimeField(auto_now_add=True)

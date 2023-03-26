@@ -23,6 +23,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout, name='logout'),
     path('analysis/', views.analysis, name='analysis'),
+    path('stocks/', views.stocks, name='stocks'),
     path('predictions/', views.predictions, name='predictions'),
     path('blog/', views.blog, name='blog'),
     path('getStockData/<str:file_name>', views.getStockData, name='getStockData'),

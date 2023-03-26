@@ -1,7 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}NepseApp{% endblock %}</title>
@@ -10,117 +9,102 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-  <style>
-    .sidebar {
-      padding: 20px;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-      color: #61892f;
-      font-weight: bold;
-    }
-
-    .nav-link:hover {
-      color: #572F89;
-    }
-
-  </style>
-
-
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
-
 <body>
-  <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-    <a class="navbar-brand px-5" href="{% url 'index' %}" style="color:#61892f">NepseApp</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
-      aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse justify-content-end" id="navbarCollapse">
-      {% if user.is_authenticated %}
-      <ul class="navbar-nav px-5">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
-            aria-haspopup="true" aria-expanded="false">
-            {{ user.username }}
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="#">Profile</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
-          </div>
-        </li>
-      </ul>
-      {% else %}
-      <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'login' %}">Log in</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'signup' %}">Sign up</a>
-        </li>
-      </ul>
-      {% endif %}
+  <nav class="navbar navbar-expand-md">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'index' %}" style="color:#61892f">NepseApp</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+        aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarCollapse">
+        {% if user.is_authenticated %}
+        <ul class="navbar-nav px-5">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+              aria-haspopup="true" aria-expanded="false">
+              {{ user.username }}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" href="#">Profile</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="{% url 'logout' %}?next=/success/">Logout</a>
+            </div>
+          </li>
+        </ul>
+        {% else %}
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">Log in</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'signup' %}">Sign up</a>
+          </li>
+        </ul>
+        {% endif %}
+        {% if request.GET.next == '/success/' %}
+        <div class="alert alert-success" role="alert">
+          You have been logged out successfully.
+        </div>
+        {% endif %}
+      </div>
     </div>
   </nav>
+
   <div class="container-fluid">
     <div class="row">
-      <nav class="col-md-12 d-none d-md-block bg-dark sidebar">
-        <div class="sidebar-sticky">
+      <nav class="col-md-2 col-lg-2 d-md-block bg-light sidebar">
+        <div class="sidebar-sticky pt-3">
           <ul class="nav flex-column">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'index' %}">
+              <a class="nav-link  fs-4" aria-current="page" href="{% url 'index' %}">
                 <i class="material-icons">home</i>
-                Home <span class="sr-only"></span>
+                <span class="ms-2">Home</span>
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">
+              <a class="nav-link fs-4" href="{% url 'stocks' %}">
                 <i class="material-icons">show_chart</i>
-                Stocks
+                <span class="ms-2">Stocks</span>
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'analysis' %}">
+              <a class="nav-link fs-4" href="{% url 'analysis' %}">
                 <i class="material-icons">analytics</i>
-                Analysis
+                <span class="ms-2">Analysis</span>
               </a>
             </li>
             {% if user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'predictions' %}">
+              <a class="nav-link fs-4" href="{% url 'predictions' %}">
                 <i class="material-icons">trending_up</i>
-                Predictions
+                <span class="ms-2">Predictions</span>
               </a>
             </li>
             {% endif %}
             <li class="nav-item">
-              <a class="nav-link" href="#">
+              <a class="nav-link fs-4" href="#">
                 <i class="material-icons">thumb_up_alt</i>
-                Recommendation
+                <span class="ms-2">Recommendation</span>
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'blog' %}">
+              <a class="nav-link fs-4" href="{% url 'blog' %}">
                 <i class="material-icons">article</i>
-                Blogs
+                <span class="ms-2">Blogs</span>
               </a>
             </li>
           </ul>
         </div>
       </nav>
-      <main role="main" class="col-md-12 pt-3 px-4">
+      <main role="main" class="col-md-10 pt-3 px-4">
         <div class="container-fluid">
           <div class="row justify-content-center">
             <div class="col-md-12">
-              <div class="content-wrapper">
               {% block content %}
               {% endblock %}
-            </div>
             </div>
           </div>
         </div>
@@ -170,10 +154,7 @@
     </div>
   </footer>
 
-
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-</body>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
 </html>

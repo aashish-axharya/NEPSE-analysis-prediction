@@ -4,14 +4,14 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-md-12">
-      <h3 class="display-4 mb-4">Stocks</h3>
+      <h5 class="display-4 mb-4">Todays Prices</h5>
       <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Select Date
         </button>
         <div class="dropdown-menu" aria-labelledby="fileDropdown">
           {% for file in file_choices %}
-          <a class="dropdown-item" href="{% url 'getStockData' file %}">{{ file }}</a>
+          <a class="dropdown-item" href="{% url 'getStockData' file %}">{{ file|slice:":-4" }}</a>
           {% endfor %}
         </div>
       </div>      

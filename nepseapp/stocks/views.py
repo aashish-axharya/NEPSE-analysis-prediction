@@ -3,9 +3,14 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout as auth_logout
 from django.contrib import messages
+from .forms import BlogPostForm
 from .models import StockData
 import csv, os
-from .models import StockData
+import pandas as pd
+from .models import StockData, BlogPost
+from django.contrib.admin.views.decorators import staff_member_required
+import plotly.graph_objs as go
+import plotly.io as pio
 
 def get_file_choices():
     file_list = os.listdir(os.path.join('static', 'data'))
@@ -13,6 +18,8 @@ def get_file_choices():
     for file in file_list:
         if file.endswith('.csv'):
             file_choices.append(file)
+    #show most recent first 
+    file_choices = sorted(file_choices,reverse=True)
     return file_choices
 
 def index(request):
@@ -94,7 +101,57 @@ def analysis(request):
     return render(request, 'analysis.html')
 
 def blog(request):
-    return render(request, 'blog.html')
+    if request.method == 'POST':
+        form = BlogPostForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('blog')
+    else:
+        form = BlogPostForm()
+    posts = BlogPost.objects.order_by('-created_date')
+    return render(request, 'blog.html', {'form': form, 'posts': posts})
+
+def stocks(request):
+    file_path = 'static/individual/ADBL.csv'
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            reader = csv.DictReader(f)
+            stock_data = [row for row in reader]
+    else:
+        stock_data = []
+    return render(request, 'stocks.html', {'stock_data': stock_data})
+
 
 def predictions(request):
-    return render(request, 'predictions.html')
+    # Read the prediction data from the CSV file
+    df = pd.read_csv('static/predictions/ADBL.csv')
+
+    # Create the plotly graph
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df.index, y=df['Predicted Prices'], mode='lines+markers'))
+    fig.update_layout(title='Predicted Stock Prices', xaxis_title='Time', yaxis_title='Price')
+
+    # Convert the plotly graph to HTML format
+    plot_div = pio.to_html(fig, full_html=False)
+
+    # Render the predictions.html template with the plotly graph
+    return render(request, 'predictions.html', {'plot_div': plot_div})
+
+# def predictions(request):
+#     file_path = os.path.join('static', 'predictions', 'ADBL.csv')
+#     if os.path.exists(file_path):
+#         with open(file_path, 'r') as f:
+#             reader = csv.reader(f)
+#             next(reader)  # Skip header row
+#             predicted_prices = [float(row[0]) for row in reader]
+#         fig = go.Figure()
+#         fig.add_trace(go.Scatter(x=list(range(len(predicted_prices))),
+#                                  y=predicted_prices,
+#                                  mode='lines+markers'))
+#         fig.update_layout(title='Predicted Stock Prices',
+#                           xaxis_title='Time',
+#                           yaxis_title='Price')
+#         plot_div = fig.to_html(full_html=False)
+#     else:
+#         plot_div = '<p>No predictions available.</p>'
+#     return render(request, 'predictions.html', {'plot_div': plot_div})
