@@ -20,7 +20,7 @@ train_size=int(len(df1)*split_ratio)
 test_size=len(df1)-train_size
 train_data, test_data = df1[0:train_size,:], df1[train_size:len(df1),:]
 # Convert the data into a sequence of past time steps and future time steps
-def create_dataset(data, time_steps=1):
+def create_dataset(data, time_steps):
     x, y = [], []
     for i in range(len(data) - time_steps - 1):
         a = data[i:(i + time_steps), 0]

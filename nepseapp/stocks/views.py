@@ -121,37 +121,21 @@ def stocks(request):
         stock_data = []
     return render(request, 'stocks.html', {'stock_data': stock_data})
 
-
 def predictions(request):
-    # Read the prediction data from the CSV file
-    df = pd.read_csv('static/predictions/ADBL.csv')
-
-    # Create the plotly graph
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df.index, y=df['Predicted Prices'], mode='lines+markers'))
-    fig.update_layout(title='Predicted Stock Prices', xaxis_title='Time', yaxis_title='Price')
-
-    # Convert the plotly graph to HTML format
-    plot_div = pio.to_html(fig, full_html=False)
-
-    # Render the predictions.html template with the plotly graph
+    file_path = os.path.join('static', 'predictions', 'ADBL.csv')
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            reader = csv.reader(f)
+            next(reader)  # Skip header row
+            predicted_prices = [float(row[0]) for row in reader]
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=list(range(len(predicted_prices))),
+                                 y=predicted_prices,
+                                 mode='lines+markers'))
+        fig.update_layout(title='ADBL Stock Prices',
+                          xaxis_title='Days',
+                          yaxis_title='Price')
+        plot_div = fig.to_html(full_html=False)
+    else:
+        plot_div = '<p>No predictions available.</p>'
     return render(request, 'predictions.html', {'plot_div': plot_div})
-
-# def predictions(request):
-#     file_path = os.path.join('static', 'predictions', 'ADBL.csv')
-#     if os.path.exists(file_path):
-#         with open(file_path, 'r') as f:
-#             reader = csv.reader(f)
-#             next(reader)  # Skip header row
-#             predicted_prices = [float(row[0]) for row in reader]
-#         fig = go.Figure()
-#         fig.add_trace(go.Scatter(x=list(range(len(predicted_prices))),
-#                                  y=predicted_prices,
-#                                  mode='lines+markers'))
-#         fig.update_layout(title='Predicted Stock Prices',
-#                           xaxis_title='Time',
-#                           yaxis_title='Price')
-#         plot_div = fig.to_html(full_html=False)
-#     else:
-#         plot_div = '<p>No predictions available.</p>'
-#     return render(request, 'predictions.html', {'plot_div': plot_div})
