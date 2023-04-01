@@ -3,15 +3,18 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout as auth_logout
 from django.contrib import messages
+from django.http import HttpResponse
 from .forms import BlogPostForm
 from .models import StockData
 import csv, os
 import pandas as pd
+import numpy as np
 from .models import StockData, BlogPost
 from django.contrib.admin.views.decorators import staff_member_required
 import plotly.graph_objs as go
-import plotly.io as pio
 from datetime import datetime
+from keras.models import load_model
+from sklearn.preprocessing import MinMaxScaler
 
 def get_file_choices():
     file_list = os.listdir(os.path.join('static', 'data'))
@@ -116,7 +119,7 @@ def stocks(request):
     symbols = ['ADBL', 'MEGA', 'NABIL', 'NICA']
     
     # read the stock data from the CSV file
-    stock = request.POST.get('stock', 'ADBL')
+    stock = request.GET.get('stock', 'ADBL')
     file_path = os.path.join('static', 'individual', f'{stock}.csv')
     if os.path.exists(file_path):
         with open(file_path, 'r') as f:
@@ -130,24 +133,54 @@ def stocks(request):
     return render(request, 'stocks.html', context)
 
 def predictions(request):
-    file_path = os.path.join('static', 'predictions','ADBL', 'ADBL.csv')
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as f:
-            reader = csv.reader(f)
-            next(reader)  # Skip header row
-            predicted_prices = [float(row[0]) for row in reader]
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=list(range(len(predicted_prices))),
-                                 y=predicted_prices,
-                                 mode='lines+markers'))
-        fig.update_layout(title='ADBL Stock Prices',
-                          xaxis_title='Days',
-                          yaxis_title='Price')
-        plot_div = fig.to_html(full_html=False)
+    stock = request.POST.get('stock', 'ADBL')
+    # Load the model
+    model_path = os.path.join('static', 'models', stock + '.h5')
+    if os.path.exists(model_path):
+        model = load_model(model_path)
     else:
-        plot_div = '<p>No predictions available.</p>'
+        return HttpResponse('Model not found')
+        
+    # Load the data
+    data_path = os.path.join('static', 'data', stock + '.csv')
+    if os.path.exists(data_path):
+        df = pd.read_csv(data_path)
+    else:
+        return HttpResponse('Data not found')
+    
+    # Preprocess the data
+    scaler = MinMaxScaler(feature_range=(0,1))
+    closedf = df['Close'].dropna()
+    df1 = scaler.fit_transform(np.array(closedf).reshape(-1,1))
+    
+    # Prepare the input data for the model
+    time_steps = 60
+    recent_data = df1[-time_steps:]
+    x_recent = recent_data.reshape(1, 1, time_steps)
+    
+    # Generate the predictions for the next 7 days
+    predicted_prices = []
+    for i in range(7):
+        predicted_price = model.predict(x_recent)
+        predicted_prices.append(predicted_price[0][0])
+        x_recent = np.append(x_recent[:, :, 1:], [[predicted_price]], axis=2)
+    
+    # Scale the predicted prices back to their original range
+    predicted_prices = scaler.inverse_transform(np.array(predicted_prices).reshape(-1,1)).flatten()
+    
+    # Generate the plot
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df['Date'], y=df['Close'], name='Actual Prices', mode='lines+markers'))
+    fig.add_trace(go.Scatter(x=pd.date_range(df['Date'].iloc[-1], periods=8, freq='D')[1:],
+                             y=predicted_prices,
+                             name='Predicted Prices',
+                             mode='lines+markers'))
+    fig.update_layout(title=stock_name + ' Stock Prices',
+                      xaxis_title='Date',
+                      yaxis_title='Price')
+    plot_div = fig.to_html(full_html=False)
+    
     return render(request, 'predictions.html', {'plot_div': plot_div})
-
 
 def analysis(request):
     stock = request.POST.get('stock', 'ADBL') #ADBL is default
@@ -183,6 +216,14 @@ def analysis(request):
                           go.Scatter(x=resampled_data.index, y=resampled_data['RSI'], name='RSI')])
 
     fig.update_layout(xaxis_rangeslider_visible=False, title=f'{stock} Trading Graph')
+    
+    # Add dotted lines at RSI values of 30 and 70
+    fig.add_shape(type="line",
+                  x0=resampled_data.index[0], y0=30, x1=resampled_data.index[-1], y1=30,
+                  line=dict(color="grey", width=1, dash="dot"))
+    fig.add_shape(type="line",
+                  x0=resampled_data.index[0], y0=70, x1=resampled_data.index[-1], y1=70,
+                  line=dict(color="grey", width=1, dash="dot"))
 
     # Render the chart in the Django template
     context = {'graph': fig.to_html(full_html=False)}

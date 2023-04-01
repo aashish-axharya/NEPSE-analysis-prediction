@@ -5,7 +5,10 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 from matplotlib import pyplot as plt
-df = pd.read_csv('ADBL.csv')
+
+stock='NICA'
+file = f'static/individual/{stock}.csv'
+df = pd.read_csv(file)
 df.head()
 closedf = df.reset_index()['Close']
 # Dropping Null values from data
@@ -44,8 +47,8 @@ model.compile(loss='mean_squared_error', optimizer='adam',metrics=['accuracy'])
 model.summary()
 # Train the model
 history1 = model.fit(x_train, y_train, epochs=100, verbose=1, validation_data=(x_test, y_test))
-history1
-model.save('ADBL.h5')
+save_loc = f'static/predictions/{stock}.h5'
+model.save(save_loc)
 # Test the model
 # prediction_test = model.predict(x_test)
 # prediction_test = scaler.inverse_transform(prediction_test)
