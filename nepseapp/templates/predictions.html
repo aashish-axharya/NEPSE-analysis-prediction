@@ -3,9 +3,9 @@
 {% block content %}
   <div class="container">
     <h1>Predicted Stock Prices (7 days)</h1>
-    <div id="plot"></div>
+    <div id="plot">
+      {{ plot_div|safe }}
+    </div>
   </div>
-
-  {{ plot_div|safe }}
 
 {% endblock %}

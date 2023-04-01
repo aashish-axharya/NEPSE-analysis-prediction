@@ -4,7 +4,20 @@
 
 {% block content %}
 <div class="container">
-  <h2 class="mb-4">ADBL Stocks</h2>
+  <h2 class="mb-4">{{ selected_stock }} Stocks</h2>
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <form method="get">
+        <div class="form-group">
+          <select class="form-control" name="stock" onchange="this.form.submit()">
+            {% for stock in stock_names %}
+            <option value="{{ stock }}" {% if selected_stock == stock %} selected {% endif %}>{{ stock }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </form>
+    </div>
+  </div>
   <div class="table-responsive">
     <table class="table table-striped table-hover">
       <thead class="thead-dark">
@@ -28,6 +41,7 @@
     </table>
   </div>
 </div>
+
 
 <style>
   table {

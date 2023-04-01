@@ -11,6 +11,7 @@ from .models import StockData, BlogPost
 from django.contrib.admin.views.decorators import staff_member_required
 import plotly.graph_objs as go
 import plotly.io as pio
+from datetime import datetime
 
 def get_file_choices():
     file_list = os.listdir(os.path.join('static', 'data'))
@@ -97,14 +98,13 @@ def getStockData(request, file_name):
     StockData.objects.bulk_create([StockData(**item) for item in data])  # Create new objects from CSV data
     return redirect('index')
 
-def analysis(request):
-    return render(request, 'analysis.html')
-
 def blog(request):
     if request.method == 'POST':
         form = BlogPostForm(request.POST)
         if form.is_valid():
-            form.save()
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
             return redirect('blog')
     else:
         form = BlogPostForm()
@@ -112,17 +112,25 @@ def blog(request):
     return render(request, 'blog.html', {'form': form, 'posts': posts})
 
 def stocks(request):
-    file_path = 'static/individual/ADBL.csv'
+    # create a list of stock symbols
+    symbols = ['ADBL', 'MEGA', 'NABIL', 'NICA']
+    
+    # read the stock data from the CSV file
+    stock = request.POST.get('stock', 'ADBL')
+    file_path = os.path.join('static', 'individual', f'{stock}.csv')
     if os.path.exists(file_path):
         with open(file_path, 'r') as f:
             reader = csv.DictReader(f)
             stock_data = [row for row in reader]
     else:
         stock_data = []
-    return render(request, 'stocks.html', {'stock_data': stock_data})
+
+    # pass the stock data and symbols to the template
+    context = {'stock_data': stock_data, 'stock_names': symbols, 'selected_stock': stock}
+    return render(request, 'stocks.html', context)
 
 def predictions(request):
-    file_path = os.path.join('static', 'predictions', 'ADBL.csv')
+    file_path = os.path.join('static', 'predictions','ADBL', 'ADBL.csv')
     if os.path.exists(file_path):
         with open(file_path, 'r') as f:
             reader = csv.reader(f)
@@ -139,3 +147,43 @@ def predictions(request):
     else:
         plot_div = '<p>No predictions available.</p>'
     return render(request, 'predictions.html', {'plot_div': plot_div})
+
+
+def analysis(request):
+    stock = request.POST.get('stock', 'ADBL') #ADBL is default
+
+    file_path = os.path.join('static', 'individual', f'{stock}.csv')
+    data = pd.read_csv(file_path)
+    
+    # Convert the Date column to a datetime format
+    data['Date'] = data['Date'].apply(lambda x: datetime.strptime(x, '%m/%d/%Y'))
+    
+    # Set the Date column as the index of the DataFrame
+    data.set_index('Date', inplace=True)
+    
+    # Resample the data to the desired time frame and aggregate the High, Low, and Close values
+    resampled_data = data.resample('D').agg({'High': 'max', 'Low': 'min', 'Close': 'last'})
+    
+    # Calculate additional columns such as Moving Average and Relative Strength Index (RSI) for the stock data
+    resampled_data['MA'] = resampled_data['Close'].rolling(window=20).mean()
+    resampled_data['Delta'] = resampled_data['Close'].diff()
+    resampled_data['Gain'] = resampled_data['Delta'].apply(lambda x: x if x > 0 else 0)
+    resampled_data['Loss'] = resampled_data['Delta'].apply(lambda x: abs(x) if x < 0 else 0)
+    resampled_data['AvgGain'] = resampled_data['Gain'].rolling(window=14).mean()
+    resampled_data['AvgLoss'] = resampled_data['Loss'].rolling(window=14).mean()
+    resampled_data['RS'] = resampled_data['AvgGain'] / resampled_data['AvgLoss']
+    resampled_data['RSI'] = 100 - (100 / (1 + resampled_data['RS']))
+    
+    # Create the candlestick chart with the stock data and technical indicators
+    fig = go.Figure(data=[go.Candlestick(x=resampled_data.index,
+                                          high=resampled_data['High'],
+                                          low=resampled_data['Low'],
+                                          close=resampled_data['Close']),
+                          go.Scatter(x=resampled_data.index, y=resampled_data['MA'], name='Moving Average'),
+                          go.Scatter(x=resampled_data.index, y=resampled_data['RSI'], name='RSI')])
+
+    fig.update_layout(xaxis_rangeslider_visible=False, title=f'{stock} Trading Graph')
+
+    # Render the chart in the Django template
+    context = {'graph': fig.to_html(full_html=False)}
+    return render(request, 'analysis.html', context)

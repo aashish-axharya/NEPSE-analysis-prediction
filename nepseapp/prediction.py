@@ -47,37 +47,36 @@ history1 = model.fit(x_train, y_train, epochs=100, verbose=1, validation_data=(x
 history1
 model.save('ADBL.h5')
 # Test the model
-prediction_test = model.predict(x_test)
-prediction_test = scaler.inverse_transform(prediction_test)
-# Calculate Accuracy
-#calculate accuracy
-print('Accuracy: %.2f' % (model.evaluate(x_train, y_train)[1]*100))
-# Calculate the root mean squared error
-y_inverse = scaler.inverse_transform(y_test.reshape(-1,1))
-rmse_test = np.sqrt(np.mean(((prediction_test - y_inverse) ** 2)))
-print('RMSE:', rmse_test)
-# Plotting Model
-# Get the most recent 60 days of stock price data
-recent_data = df1[-60:]
+# prediction_test = model.predict(x_test)
+# prediction_test = scaler.inverse_transform(prediction_test)
+# # Calculate Accuracy
+# #calculate accuracy
+# print('Accuracy: %.2f' % (model.evaluate(x_train, y_train)[1]*100))
+# # Calculate the root mean squared error
+# y_inverse = scaler.inverse_transform(y_test.reshape(-1,1))
+# rmse_test = np.sqrt(np.mean(((prediction_test - y_inverse) ** 2)))
+# print('RMSE:', rmse_test)
+# # Plotting Model
+# # Get the most recent 60 days of stock price data
+# recent_data = df1[-60:]
 
-# Reshape the data for the LSTM model
-x_recent = recent_data.reshape(1, 1, 60)
+# # Reshape the data for the LSTM model
+# x_recent = recent_data.reshape(1, 1, 60)
 
-# Predict the stock prices for the next day and append to the input data
-predicted_price = model.predict(x_recent)
-df1 = np.append(df1, predicted_price)
+# # Predict the stock prices for the next day and append to the input data
+# predicted_price = model.predict(x_recent)
+# df1 = np.append(df1, predicted_price)
 
-# Shift the input data by one day
-for i in range(6):
-    recent_data = df1[-60:]
-    x_recent = recent_data.reshape(1, 1, 60)
-    predicted_price = model.predict(x_recent)
-    df1 = np.append(df1, predicted_price)
+# # Shift the input data by one day
+# for i in range(6):
+#     recent_data = df1[-60:]
+#     x_recent = recent_data.reshape(1, 1, 60)
+#     predicted_price = model.predict(x_recent)
+#     df1 = np.append(df1, predicted_price)
     
-# Inverse transform the predicted prices
-predicted_prices = scaler.inverse_transform(df1[-7:].reshape(-1, 1))
+# # Inverse transform the predicted prices
+# predicted_prices = scaler.inverse_transform(df1[-7:].reshape(-1, 1))
 
-# Print the predicted prices for the next 7 days
-df_predicted = pd.DataFrame(predicted_prices, columns=['Predicted Prices'])
-df_predicted.to_csv('predicted_prices.csv', index=False)
-# Checking loss in model
+# # Print the predicted prices for the next 7 days
+# df_predicted = pd.DataFrame(predicted_prices, columns=['Predicted Prices'])
+# df_predicted.to_csv('predicted_prices.csv', index=False)
