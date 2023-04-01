@@ -6,7 +6,7 @@
     <form method="POST">
       {% csrf_token %}
       <label for="stock">Select Stock:</label>
-      <select name="stock" id="stock" onchange="this.form.submit()">
+      <select class="form-control" name="stock" id="stock" onchange="this.form.submit()">
         <option value="ADBL" {% if selected_stock == 'ADBL' %}selected{% endif %}>ADBL</option>
         <option value="MEGA" {% if selected_stock == 'MEGA' %}selected{% endif %}>MEGA</option>
         <option value="NABIL" {% if selected_stock == 'NABIL' %}selected{% endif %}>NABIL</option>

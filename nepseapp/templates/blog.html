@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
 
 {% block title %}Blog{% endblock %}
 
@@ -15,19 +14,30 @@
     <div class="col">
         <form method="POST" action="{% url 'blog' %}" class="form-inline">
             {% csrf_token %}
-            <div class="form-group row">
-                <label class="col-form-label col-sm-2">{{ form.title.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.title }}
+            <div class="form-group">
+                <div class="row">
+                    <label for="{{ form.title.id_for_label }}" class="col-sm-2 col-form-label">{{ form.title.label }}</label>
+                    <div class="col-sm-10">
+                        {{ form.title }}
+                    </div>
                 </div>
             </div>
-            <div class="form-group row">
-                <label class="col-form-label col-sm-2">{{ form.content.label }}</label>
-                <div class="col-sm-10">
-                    {{ form.content }}
+            <div class="form-group">
+                <div class="row">
+                    <label for="{{ form.content.id_for_label }}" class="col-sm-2 col-form-label">{{ form.content.label }}</label>
+                    <div class="col-sm-10">
+                        {{ form.content }}
+                    </div>
                 </div>
             </div>
-            <button type="submit" class="btn btn-success ml-2" style="background-color:#61892f;">Post</button>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10">
+                        <button type="submit" class="btn btn-success ml-2" style="background-color:#61892f;">Post</button>
+                    </div>
+                </div>
+            </div>
         </form>
     </div>
 </div>
@@ -53,15 +63,30 @@
 <p>No blog posts yet.</p>
 {% endif %}
 
-{% endblock %}
-
 <style>
-    .form-label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
+    .form-group {
+        margin-bottom: 1.5rem;
     }
-    .form-control {
+    label {
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    input,
+    textarea {
+        padding: .5rem;
+        border-radius: .25rem;
+        border: none;
+        background-color: #F0F0F0;
+        font-size: 1.2rem;
         width: 100%;
     }
+    button[type="submit"] {
+        padding: .5rem 2rem;
+        font-size: 1.2rem;
+        border: none;
+        border-radius: .25rem;
+        background-color: #61892f;
+        color: white;
+    }
 </style>
+{% endblock %}

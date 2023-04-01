@@ -3,7 +3,6 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout as auth_logout
 from django.contrib import messages
-from django.http import HttpResponse
 from .forms import BlogPostForm
 from .models import StockData
 import csv, os
@@ -15,16 +14,6 @@ import plotly.graph_objs as go
 from datetime import datetime
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
-
-def get_file_choices():
-    file_list = os.listdir(os.path.join('static', 'data'))
-    file_choices = []
-    for file in file_list:
-        if file.endswith('.csv'):
-            file_choices.append(file)
-    #show most recent first 
-    file_choices = sorted(file_choices,reverse=True)
-    return file_choices
 
 def index(request):
     file_choices = get_file_choices()
@@ -116,7 +105,7 @@ def blog(request):
 
 def stocks(request):
     # create a list of stock symbols
-    symbols = ['ADBL', 'MEGA', 'NABIL', 'NICA']
+    symbols = get_symbol_list()
     
     # read the stock data from the CSV file
     stock = request.GET.get('stock', 'ADBL')
@@ -139,14 +128,14 @@ def predictions(request):
     if os.path.exists(model_path):
         model = load_model(model_path)
     else:
-        return HttpResponse('Model not found')
+        return render(request, 'predictions.html', {'message': 'Model not found'})
         
     # Load the data
     data_path = os.path.join('static', 'data', stock + '.csv')
     if os.path.exists(data_path):
         df = pd.read_csv(data_path)
     else:
-        return HttpResponse('Data not found')
+        return render(request, 'predictions.html', {'message': 'Data not found'})
     
     # Preprocess the data
     scaler = MinMaxScaler(feature_range=(0,1))
@@ -175,7 +164,7 @@ def predictions(request):
                              y=predicted_prices,
                              name='Predicted Prices',
                              mode='lines+markers'))
-    fig.update_layout(title=stock_name + ' Stock Prices',
+    fig.update_layout(title=stock + ' Stock Prices',
                       xaxis_title='Date',
                       yaxis_title='Price')
     plot_div = fig.to_html(full_html=False)
@@ -198,7 +187,6 @@ def analysis(request):
     resampled_data = data.resample('D').agg({'High': 'max', 'Low': 'min', 'Close': 'last'})
     
     # Calculate additional columns such as Moving Average and Relative Strength Index (RSI) for the stock data
-    resampled_data['MA'] = resampled_data['Close'].rolling(window=20).mean()
     resampled_data['Delta'] = resampled_data['Close'].diff()
     resampled_data['Gain'] = resampled_data['Delta'].apply(lambda x: x if x > 0 else 0)
     resampled_data['Loss'] = resampled_data['Delta'].apply(lambda x: abs(x) if x < 0 else 0)
@@ -212,7 +200,6 @@ def analysis(request):
                                           high=resampled_data['High'],
                                           low=resampled_data['Low'],
                                           close=resampled_data['Close']),
-                          go.Scatter(x=resampled_data.index, y=resampled_data['MA'], name='Moving Average'),
                           go.Scatter(x=resampled_data.index, y=resampled_data['RSI'], name='RSI')])
 
     fig.update_layout(xaxis_rangeslider_visible=False, title=f'{stock} Trading Graph')
@@ -228,3 +215,17 @@ def analysis(request):
     # Render the chart in the Django template
     context = {'graph': fig.to_html(full_html=False)}
     return render(request, 'analysis.html', context)
+
+def get_symbol_list():
+    symbols = ['ADBL', 'MEGA', 'NABIL', 'NICA']
+    return symbols
+
+def get_file_choices():
+    file_list = os.listdir(os.path.join('static', 'data'))
+    file_choices = []
+    for file in file_list:
+        if file.endswith('.csv'):
+            file_choices.append(file)
+    #show most recent first 
+    file_choices = sorted(file_choices,reverse=True)
+    return file_choices

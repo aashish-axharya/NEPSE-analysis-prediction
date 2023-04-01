@@ -9,6 +9,7 @@
     <div class="col-md-4">
       <form method="get">
         <div class="form-group">
+          <label for="stock">Select Stock:</label>
           <select class="form-control" name="stock" onchange="this.form.submit()">
             {% for stock in stock_names %}
             <option value="{{ stock }}" {% if selected_stock == stock %} selected {% endif %}>{{ stock }}</option>
