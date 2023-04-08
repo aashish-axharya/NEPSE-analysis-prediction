@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container">
   <h1>Predicted Stock Prices (7 days)</h1>
-  <form method="POST">
+  <form method="POST" class="form-inline">
     {% csrf_token %}
     <label for="stock">Select Stock:</label>
     <select class="form-control" name="stock" onchange="this.form.submit()">

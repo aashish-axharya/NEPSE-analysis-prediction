@@ -136,6 +136,7 @@ def stocks(request):
 def predictions(request):
     symbols = get_symbol_list()
     stock = request.POST.get('stock', 'ADBL')
+
     # Load the model
     model_path = os.path.join('static', 'models', stock + '.h5')
     if os.path.exists(model_path):
@@ -150,39 +151,48 @@ def predictions(request):
     else:
         return render(request, 'predictions.html', {'message': 'Data not found'})
 
-    # Preprocess the data
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    closedf = df['Close'].dropna()
-    df1 = scaler.fit_transform(np.array(closedf).reshape(-1, 1))
+    closedf = df.reset_index()['Close']
+    scaler = MinMaxScaler(feature_range=(0,1))
+    df1 = scaler.fit_transform(np.array(closedf).reshape(-1,1)) 
+    recent_data = df1[-60:]
 
-    # Prepare the input data for the model
-    time_steps = 60
-    recent_data = df1[-time_steps:]
-    x_recent = recent_data.reshape(1, 1, time_steps)
+    # Reshape the data for the LSTM model
+    x_recent = recent_data.reshape(1, 1, 60)
 
-    # Generate the predictions for the next 7 days
-    predicted_prices = []
-    for i in range(7):
+    # Predict the stock prices for the next day and append to the input data
+    predicted_price = model.predict(x_recent)
+    df1 = np.append(df1, predicted_price)
+
+    # Shift the input data by one day
+    for i in range(6):
+        recent_data = df1[-60:]
+        x_recent = recent_data.reshape(1, 1, 60)
         predicted_price = model.predict(x_recent)
-        predicted_price = np.expand_dims(predicted_price, axis=1)
-        x_recent = np.concatenate(
-            (x_recent[:, :, 1:], predicted_price), axis=2)
+        df1 = np.append(df1, predicted_price)
+        
+    # Inverse transform the predicted prices
+    predicted_prices = scaler.inverse_transform(df1[-7:].reshape(-1, 1))
 
-    # Scale the predicted prices back to their original range
-    predicted_prices = scaler.inverse_transform(
-        np.array(predicted_prices).reshape(-1, 1)).flatten()
+    # Add the predicted prices to the dataframe
+    last_date = pd.to_datetime(df['Date'].max())
+    pred_dates = pd.date_range(last_date, periods=8, freq='D')[1:]
+    pred_df = pd.DataFrame({'Date': pred_dates, 'Close': predicted_prices.ravel()})
+    df = pd.concat([df, pred_df], ignore_index=True)
 
     # Generate the plot
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=df['Date'], y=df['Close'], name='Actual Prices', mode='lines+markers'))
-    fig.add_trace(go.Scatter(x=pd.date_range(df['Date'].iloc[-1], periods=8, freq='D')[1:],
-                             y=predicted_prices,
-                             name='Predicted Prices',
-                             mode='lines+markers'))
-    fig.update_layout(title=stock + ' Stock Prices',
-                      xaxis_title='Date',
-                      yaxis_title='Price')
+    x=df['Date'], y=df['Close'], name='Predicted Prices', mode='lines+markers'))
+
+    fig.update_layout(
+        title=f'{stock} Stock Prices Prediction',
+        xaxis_title='Date',
+        yaxis_title='Price',
+    )
+
+    fig.update_yaxes(range =[df['Close'].min()-10, df['Close'].max()+10])
+    fig.update_xaxes(tickformat="%b %d")
+
     plot_div = fig.to_html(full_html=False)
 
     return render(request, 'predictions.html', {'plot_div': plot_div, 'stock_names': symbols})
