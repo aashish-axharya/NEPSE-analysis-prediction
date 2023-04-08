@@ -1,21 +1,58 @@
 {% extends "base.html" %}
 {% block title %}NepseApp{% endblock %}
 {% block content %}
+
+<script>
+  $(document).ready(function () {
+    $('#datepicker').datepicker({
+      dateFormat: 'yy-mm-dd',
+      defaultDate: '2023-03-26'
+    });
+      // Get the table and the search input field
+  var table = $('#stocksTable');
+  var searchInput = $('#search-input');
+
+  // Listen for keyup events on the search input field
+  searchInput.on('keyup', function() {
+    // Get the value of the search input
+    var searchTerm = $(this).val().toLowerCase();
+
+    // Loop through the rows of the table and hide/show them based on the search term
+    table.find('tbody tr').each(function(index, row) {
+      var rowText = $(row).text().toLowerCase();
+      if (rowText.includes(searchTerm)) {
+        $(row).show();
+      } else {
+        $(row).hide();
+      }
+    });
+  });
+  });
+</script>
+
 <div class="container-fluid">
   <div class="row">
     <div class="col-md-12">
       <h5 class="display-4 mb-4">Todays Prices</h5>
-      <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Select Date
-        </button>
-        <div class="dropdown-menu" aria-labelledby="fileDropdown">
-          {% for file in file_choices %}
-          <a class="dropdown-item" href="{% url 'getStockData' file %}">{{ file|slice:":-4" }}</a>
-          {% endfor %}
+      <form id="date-form" method="GET" action="{% url 'index' %}">
+        <div class="input-group date">
+          <label for="datepicker">Select Date:</label>
+          <input type="text" class="form-control w-25 flex-grow-0" id="datepicker" name="selected_date"
+            onchange="this.form.submit()">
         </div>
-      </div>      
-
+      </form>
+      <br>
+      <br>
+      <div class="row">
+        <p class="mb-4">Date: {{ selected_date }}</p>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div id="search-container" class="input-group">
+            <input type="text" class="form-control" id="search-input" placeholder="Search...">
+            </div>
+          </div>
+        </div>
       <div class="table-responsive">
         <table class="table table-bordered table-striped stocktable" id="stocksTable">
           <thead>
@@ -45,7 +82,10 @@
             </tr>
           </thead>
           <tbody>
-            {% for stock in stocks %}
+            {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+            {% else %}
+            {% for stock in page_obj %}
             <tr>
               <td>{{ stock.sn }}</td>
               <td>{{ stock.symbol }}</td>
@@ -71,8 +111,56 @@
               <td>{{ stock.weeks52_low }}</td>
             </tr>
             {% endfor %}
+            {% endif %}
           </tbody>
         </table>
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1" aria-label="First">
+                <span aria-hidden="true">&laquo;</span>
+                <span class="sr-only">First</span>
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                <span aria-hidden="true">&lsaquo;</span>
+                <span class="sr-only">Previous</span>
+              </a>
+            </li>
+            {% endif %}
+        
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active" aria-current="page">
+              <span class="page-link">{{ num }}<span class="sr-only"></span></span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+        
+            {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                <span aria-hidden="true">&rsaquo;</span>
+                <span class="sr-only">Next</span>
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                <span aria-hidden="true">&raquo;</span>
+                <span class="sr-only">Last</span>
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
       </div>
     </div>
   </div>

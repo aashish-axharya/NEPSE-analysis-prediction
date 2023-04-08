@@ -26,5 +26,5 @@ urlpatterns = [
     path('stocks/', views.stocks, name='stocks'),
     path('predictions/', views.predictions, name='predictions'),
     path('blog/', views.blog, name='blog'),
-    path('getStockData/<str:file_name>', views.getStockData, name='getStockData'),
+    # path('getStockData/<str:file_name>', views.getStockData, name='getStockData'),
 ]

@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout as auth_logout
+from django.contrib.admin.views.decorators import staff_member_required
+from django.core.paginator import Paginator
 from django.contrib import messages
 from .forms import BlogPostForm
 from .models import StockData
@@ -10,18 +12,10 @@ import os
 import pandas as pd
 import numpy as np
 from .models import StockData, BlogPost
-from django.contrib.admin.views.decorators import staff_member_required
 import plotly.graph_objs as go
 from datetime import datetime
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
-
-
-def index(request):
-    file_choices = get_file_choices()
-    stocks = StockData.objects.all()
-    return render(request, 'index.html', {'stocks': stocks, 'file_choices': file_choices})
-
 
 def signup(request):
     if request.method == 'POST':
@@ -62,55 +56,62 @@ def logout(request):
     return redirect('index')
 
 
-def getStockData(request, file_name):
-    csv_file = os.path.join('static/data', file_name)
-    data = []
-    with open(csv_file, 'r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            stock_data = {
-                'sn': row['SN'],
-                'symbol': row['Symbol'],
-                'company_name': row['Name'],
-                'conf': row['Conf'],
-                'open': row['Open'],
-                'high': row['High'],
-                'low': row['Low'],
-                'close': row['Close'],
-                'vwap': row['VWAP'],
-                'volume': row['Vol'],
-                'prev_close': row['Prev Close'],
-                'turnover': row['Turnover'],
-                'trans': row['Trans'],
-                'diff': row['Diff'],
-                'range': row['Range'],
-                'diff_percent': row['Diff Percent'],
-                'range_percent': row['Range Percent'],
-                'vwap_percent': row['VWAP%'],
-                'days120': row['120 days'],
-                'days180': row['180 days'],
-                'weeks52_high': row['52 weeks high'],
-                'weeks52_low': row['52 weeks low']
-            }
-            data.append(stock_data)
-    StockData.objects.all().delete()  # Delete all existing objects
-    # Create new objects from CSV data
-    StockData.objects.bulk_create([StockData(**item) for item in data])
-    return redirect('index')
-
-
-def blog(request):
-    if request.method == 'POST':
-        form = BlogPostForm(request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-            return redirect('blog')
-    else:
-        form = BlogPostForm()
-    posts = BlogPost.objects.order_by('-created_date')
-    return render(request, 'blog.html', {'form': form, 'posts': posts})
+def index(request):
+    selected_date = '2023-03-16' #setting default date
+    try:
+        date_selected = request.GET.get('selected_date')
+        date_obj = datetime.strptime(date_selected, '%m/%d/%Y')
+        selected_date = date_obj.strftime('%Y-%m-%d')
+    except:
+        pass
+    print(selected_date)
+    stocks = None  # Initialize stocks variable to None
+    if selected_date:
+        csv_file = os.path.join('static/data', f'{selected_date}.csv')
+        if os.path.isfile(csv_file):  # Check if file exists
+            data = []
+            with open(csv_file, 'r') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    stock_data = {
+                        'sn': row['SN'],
+                        'symbol': row['Symbol'],
+                        'company_name': row['Name'],
+                        'conf': row['Conf'],
+                        'open': row['Open'],
+                        'high': row['High'],
+                        'low': row['Low'],
+                        'close': row['Close'],
+                        'vwap': row['VWAP'],
+                        'volume': row['Vol'],
+                        'prev_close': row['Prev Close'],
+                        'turnover': row['Turnover'],
+                        'trans': row['Trans'],
+                        'diff': row['Diff'],
+                        'range': row['Range'],
+                        'diff_percent': row['Diff Percent'],
+                        'range_percent': row['Range Percent'],
+                        'vwap_percent': row['VWAP%'],
+                        'days120': row['120 days'],
+                        'days180': row['180 days'],
+                        'weeks52_high': row['52 weeks high'],
+                        'weeks52_low': row['52 weeks low']
+                    }
+                    data.append(stock_data)
+            StockData.objects.all().delete()  # Delete all existing objects
+            # Create new objects from CSV data
+            StockData.objects.bulk_create([StockData(**item) for item in data])
+            stocks = StockData.objects.all()
+            paginator = Paginator(stocks, 25)  # Limiting to 25 stocks per page
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            return render(request, 'index.html', {'page_obj': page_obj, 'selected_date': selected_date})
+        else:
+            error_message = f"Data not found for {selected_date}"
+            # Render the template with the error message
+            return render(request, 'index.html', {'error_message': error_message})
+    
+    return render(request, 'index.html', {'selected_date': selected_date})
 
 
 def stocks(request):
@@ -127,8 +128,17 @@ def stocks(request):
     else:
         stock_data = []
 
-    # pass the stock data and symbols to the template
-    context = {'stock_data': stock_data,
+    # create a Paginator object with stock data and 10 items per page
+    paginator = Paginator(stock_data, 10)
+
+    # get the current page number from the query string, default to 1
+    page_number = request.GET.get('page', 1)
+
+    # get the Page object for the current page
+    page_obj = paginator.get_page(page_number)
+
+    # pass the Page object and symbols to the template
+    context = {'page_obj': page_obj,
                'stock_names': symbols, 'selected_stock': stock}
     return render(request, 'stocks.html', context)
 
@@ -267,17 +277,67 @@ def analysis(request):
     context = {'ma_graph': fig_ma.to_html(full_html=False), 'rsi_graph': fig_rsi.to_html(full_html=False), 'stock_names': symbols}
     return render(request, 'analysis.html', context)
 
+def blog(request):
+    if request.method == 'POST':
+        form = BlogPostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('blog')
+    else:
+        form = BlogPostForm()
+    posts = BlogPost.objects.order_by('-created_date')
+    return render(request, 'blog.html', {'form': form, 'posts': posts})
+
+
 def get_symbol_list():
     symbols = ['ADBL', 'MEGA', 'NABIL', 'NICA']
     return symbols
 
 
-def get_file_choices():
-    file_list = os.listdir(os.path.join('static', 'data'))
-    file_choices = []
-    for file in file_list:
-        if file.endswith('.csv'):
-            file_choices.append(file)
-    # show most recent first
-    file_choices = sorted(file_choices, reverse=True)
-    return file_choices
+# def get_file_choices():
+#     file_list = os.listdir(os.path.join('static', 'data'))
+#     file_choices = []
+#     for file in file_list:
+#         if file.endswith('.csv'):
+#             file_choices.append(file)
+#     # show most recent first
+#     file_choices = sorted(file_choices, reverse=True)
+#     return file_choices
+
+# def getStockData(request, file_name):
+#     csv_file = os.path.join('static/data', file_name)
+#     data = []
+#     with open(csv_file, 'r') as file:
+#         reader = csv.DictReader(file)
+#         for row in reader:
+#             stock_data = {
+#                 'sn': row['SN'],
+#                 'symbol': row['Symbol'],
+#                 'company_name': row['Name'],
+#                 'conf': row['Conf'],
+#                 'open': row['Open'],
+#                 'high': row['High'],
+#                 'low': row['Low'],
+#                 'close': row['Close'],
+#                 'vwap': row['VWAP'],
+#                 'volume': row['Vol'],
+#                 'prev_close': row['Prev Close'],
+#                 'turnover': row['Turnover'],
+#                 'trans': row['Trans'],
+#                 'diff': row['Diff'],
+#                 'range': row['Range'],
+#                 'diff_percent': row['Diff Percent'],
+#                 'range_percent': row['Range Percent'],
+#                 'vwap_percent': row['VWAP%'],
+#                 'days120': row['120 days'],
+#                 'days180': row['180 days'],
+#                 'weeks52_high': row['52 weeks high'],
+#                 'weeks52_low': row['52 weeks low']
+#             }
+#             data.append(stock_data)
+#     StockData.objects.all().delete()  # Delete all existing objects
+#     # Create new objects from CSV data
+#     StockData.objects.bulk_create([StockData(**item) for item in data])
+#     return redirect('index')
