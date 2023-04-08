@@ -5,7 +5,8 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib import messages
 from .forms import BlogPostForm
 from .models import StockData
-import csv, os
+import csv
+import os
 import pandas as pd
 import numpy as np
 from .models import StockData, BlogPost
@@ -15,10 +16,12 @@ from datetime import datetime
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 
+
 def index(request):
     file_choices = get_file_choices()
     stocks = StockData.objects.all()
     return render(request, 'index.html', {'stocks': stocks, 'file_choices': file_choices})
+
 
 def signup(request):
     if request.method == 'POST':
@@ -27,7 +30,8 @@ def signup(request):
             user = form.save()
             username = form.cleaned_data.get('username')
             login(request, user)
-            messages.success(request, f"Account created successfully for {username}!")
+            messages.success(
+                request, f"Account created successfully for {username}!")
             return redirect('index')
         else:
             for field, errors in form.errors.items():
@@ -36,6 +40,7 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, 'signup.html', {'form': form})
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -51,9 +56,11 @@ def login_view(request):
             return render(request, 'login.html', {'message': message})
     return render(request, 'login.html')
 
+
 def logout(request):
     auth_logout(request)
     return redirect('index')
+
 
 def getStockData(request, file_name):
     csv_file = os.path.join('static/data', file_name)
@@ -87,8 +94,10 @@ def getStockData(request, file_name):
             }
             data.append(stock_data)
     StockData.objects.all().delete()  # Delete all existing objects
-    StockData.objects.bulk_create([StockData(**item) for item in data])  # Create new objects from CSV data
+    # Create new objects from CSV data
+    StockData.objects.bulk_create([StockData(**item) for item in data])
     return redirect('index')
+
 
 def blog(request):
     if request.method == 'POST':
@@ -103,10 +112,11 @@ def blog(request):
     posts = BlogPost.objects.order_by('-created_date')
     return render(request, 'blog.html', {'form': form, 'posts': posts})
 
+
 def stocks(request):
     # create a list of stock symbols
     symbols = get_symbol_list()
-    
+
     # read the stock data from the CSV file
     stock = request.GET.get('stock', 'ADBL')
     file_path = os.path.join('static', 'individual', f'{stock}.csv')
@@ -118,10 +128,13 @@ def stocks(request):
         stock_data = []
 
     # pass the stock data and symbols to the template
-    context = {'stock_data': stock_data, 'stock_names': symbols, 'selected_stock': stock}
+    context = {'stock_data': stock_data,
+               'stock_names': symbols, 'selected_stock': stock}
     return render(request, 'stocks.html', context)
 
+
 def predictions(request):
+    symbols = get_symbol_list()
     stock = request.POST.get('stock', 'ADBL')
     # Load the model
     model_path = os.path.join('static', 'models', stock + '.h5')
@@ -129,37 +142,40 @@ def predictions(request):
         model = load_model(model_path)
     else:
         return render(request, 'predictions.html', {'message': 'Model not found'})
-        
+
     # Load the data
-    data_path = os.path.join('static', 'data', stock + '.csv')
+    data_path = os.path.join('static', 'individual', stock + '.csv')
     if os.path.exists(data_path):
         df = pd.read_csv(data_path)
     else:
         return render(request, 'predictions.html', {'message': 'Data not found'})
-    
+
     # Preprocess the data
-    scaler = MinMaxScaler(feature_range=(0,1))
+    scaler = MinMaxScaler(feature_range=(0, 1))
     closedf = df['Close'].dropna()
-    df1 = scaler.fit_transform(np.array(closedf).reshape(-1,1))
-    
+    df1 = scaler.fit_transform(np.array(closedf).reshape(-1, 1))
+
     # Prepare the input data for the model
     time_steps = 60
     recent_data = df1[-time_steps:]
     x_recent = recent_data.reshape(1, 1, time_steps)
-    
+
     # Generate the predictions for the next 7 days
     predicted_prices = []
     for i in range(7):
         predicted_price = model.predict(x_recent)
-        predicted_prices.append(predicted_price[0][0])
-        x_recent = np.append(x_recent[:, :, 1:], [[predicted_price]], axis=2)
-    
+        predicted_price = np.expand_dims(predicted_price, axis=1)
+        x_recent = np.concatenate(
+            (x_recent[:, :, 1:], predicted_price), axis=2)
+
     # Scale the predicted prices back to their original range
-    predicted_prices = scaler.inverse_transform(np.array(predicted_prices).reshape(-1,1)).flatten()
-    
+    predicted_prices = scaler.inverse_transform(
+        np.array(predicted_prices).reshape(-1, 1)).flatten()
+
     # Generate the plot
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df['Date'], y=df['Close'], name='Actual Prices', mode='lines+markers'))
+    fig.add_trace(go.Scatter(
+        x=df['Date'], y=df['Close'], name='Actual Prices', mode='lines+markers'))
     fig.add_trace(go.Scatter(x=pd.date_range(df['Date'].iloc[-1], periods=8, freq='D')[1:],
                              y=predicted_prices,
                              name='Predicted Prices',
@@ -168,57 +184,83 @@ def predictions(request):
                       xaxis_title='Date',
                       yaxis_title='Price')
     plot_div = fig.to_html(full_html=False)
-    
-    return render(request, 'predictions.html', {'plot_div': plot_div})
+
+    return render(request, 'predictions.html', {'plot_div': plot_div, 'stock_names': symbols})
+
 
 def analysis(request):
-    stock = request.POST.get('stock', 'ADBL') #ADBL is default
+    symbols = get_symbol_list()
+    stock = request.POST.get('stock', 'ADBL')  # ADBL is default
 
     file_path = os.path.join('static', 'individual', f'{stock}.csv')
     data = pd.read_csv(file_path)
-    
+
     # Convert the Date column to a datetime format
-    data['Date'] = data['Date'].apply(lambda x: datetime.strptime(x, '%m/%d/%Y'))
-    
+    data['Date'] = data['Date'].apply(
+        lambda x: datetime.strptime(x, '%m/%d/%Y'))
+
     # Set the Date column as the index of the DataFrame
     data.set_index('Date', inplace=True)
-    
-    # Resample the data to the desired time frame and aggregate the High, Low, and Close values
-    resampled_data = data.resample('D').agg({'High': 'max', 'Low': 'min', 'Close': 'last'})
-    
-    # Calculate additional columns such as Moving Average and Relative Strength Index (RSI) for the stock data
-    resampled_data['Delta'] = resampled_data['Close'].diff()
-    resampled_data['Gain'] = resampled_data['Delta'].apply(lambda x: x if x > 0 else 0)
-    resampled_data['Loss'] = resampled_data['Delta'].apply(lambda x: abs(x) if x < 0 else 0)
-    resampled_data['AvgGain'] = resampled_data['Gain'].rolling(window=14).mean()
-    resampled_data['AvgLoss'] = resampled_data['Loss'].rolling(window=14).mean()
-    resampled_data['RS'] = resampled_data['AvgGain'] / resampled_data['AvgLoss']
-    resampled_data['RSI'] = 100 - (100 / (1 + resampled_data['RS']))
-    
-    # Create the candlestick chart with the stock data and technical indicators
-    fig = go.Figure(data=[go.Candlestick(x=resampled_data.index,
-                                          high=resampled_data['High'],
-                                          low=resampled_data['Low'],
-                                          close=resampled_data['Close']),
-                          go.Scatter(x=resampled_data.index, y=resampled_data['RSI'], name='RSI')])
 
-    fig.update_layout(xaxis_rangeslider_visible=False, title=f'{stock} Trading Graph')
-    
+    # Resample the data to the desired time frame and aggregate the High, Low, and Close values
+    #also filtering out the date range because NEPSE was closed due to covid
+    resampled_data = data.loc[(data.index < '2020-04-01') | (data.index > '2020-05-12')].resample('D').agg({'High': 'max', 'Low': 'min', 'Close': 'last'})
+
+    # Calculate additional columns such as Moving Average, Bollinger Bands and Relative Strength Index (RSI) for the stock data
+    resampled_data['MA'] = resampled_data['Close'].rolling(window=14, min_periods=1).mean()
+    resampled_data['Delta'] = resampled_data['Close'].diff()
+    resampled_data['Gain'] = resampled_data['Delta'].apply(
+        lambda x: x if x > 0 else 0)
+    resampled_data['Loss'] = resampled_data['Delta'].apply(
+        lambda x: abs(x) if x < 0 else 0)
+    resampled_data['AvgGain'] = resampled_data['Gain'].rolling(
+        window=14).mean()
+    resampled_data['AvgLoss'] = resampled_data['Loss'].rolling(
+        window=14).mean()
+    resampled_data['RS'] = resampled_data['AvgGain'] / \
+        resampled_data['AvgLoss']
+    resampled_data['RSI'] = 100 - (100 / (1 + resampled_data['RS']))
+
+    # Calculate Bollinger Bands
+    resampled_data['std'] = resampled_data['Close'].rolling(window=14, min_periods=1).std()
+    resampled_data['upper_band'] = resampled_data['MA'] + 2 * resampled_data['std']
+    resampled_data['lower_band'] = resampled_data['MA'] - 2 * resampled_data['std']
+
+    # Create the candlestick chart with the stock data and technical indicators
+    # Moving Average plot with Bollinger Bands
+    fig_ma = go.Figure(data=[go.Candlestick(x=resampled_data.index,
+                                         high=resampled_data['High'],
+                                         low=resampled_data['Low'],
+                                         close=resampled_data['Close']),
+                          go.Scatter(x=resampled_data.index, y=resampled_data['MA'], name='Moving Average', line_width=3),
+                          go.Scatter(x=resampled_data.index, y=resampled_data['upper_band'], name='Upper Band'),
+                          go.Scatter(x=resampled_data.index, y=resampled_data['lower_band'], name='Lower Band')])
+
+    fig_ma.update_layout(xaxis_rangeslider_visible=False,
+                    title=f'{stock} Trading Graph')
+
+    # RSI plot
+    fig_rsi = go.Figure(data=[go.Scatter(x=resampled_data.index, y=resampled_data['RSI'], name='RSI')])
+
+    fig_rsi.update_layout(xaxis_rangeslider_visible=False,
+                    title=f'{stock} RSI Graph')
+
     # Add dotted lines at RSI values of 30 and 70
-    fig.add_shape(type="line",
+    fig_rsi.add_shape(type="line",
                   x0=resampled_data.index[0], y0=30, x1=resampled_data.index[-1], y1=30,
                   line=dict(color="grey", width=1, dash="dot"))
-    fig.add_shape(type="line",
+    fig_rsi.add_shape(type="line",
                   x0=resampled_data.index[0], y0=70, x1=resampled_data.index[-1], y1=70,
                   line=dict(color="grey", width=1, dash="dot"))
 
     # Render the chart in the Django template
-    context = {'graph': fig.to_html(full_html=False)}
+    context = {'ma_graph': fig_ma.to_html(full_html=False), 'rsi_graph': fig_rsi.to_html(full_html=False), 'stock_names': symbols}
     return render(request, 'analysis.html', context)
 
 def get_symbol_list():
     symbols = ['ADBL', 'MEGA', 'NABIL', 'NICA']
     return symbols
+
 
 def get_file_choices():
     file_list = os.listdir(os.path.join('static', 'data'))
@@ -226,6 +268,6 @@ def get_file_choices():
     for file in file_list:
         if file.endswith('.csv'):
             file_choices.append(file)
-    #show most recent first 
-    file_choices = sorted(file_choices,reverse=True)
+    # show most recent first
+    file_choices = sorted(file_choices, reverse=True)
     return file_choices

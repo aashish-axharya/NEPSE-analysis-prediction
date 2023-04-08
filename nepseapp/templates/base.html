@@ -59,39 +59,39 @@
         <div class="sidebar-sticky pt-3">
           <ul class="nav flex-column">
             <li class="nav-item">
-              <a class="nav-link  fs-4" aria-current="page" href="{% url 'index' %}">
+              <a class="nav-link  fs-5" aria-current="page" href="{% url 'index' %}">
                 <i class="material-icons">home</i>
                 <span class="ms-2">Home</span>
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link fs-4" href="{% url 'stocks' %}">
+              <a class="nav-link fs-5" href="{% url 'stocks' %}">
                 <i class="material-icons">show_chart</i>
                 <span class="ms-2">Stocks</span>
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link fs-4" href="{% url 'analysis' %}">
+              <a class="nav-link fs-5" href="{% url 'analysis' %}">
                 <i class="material-icons">analytics</i>
                 <span class="ms-2">Analysis</span>
               </a>
             </li>
             {% if user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link fs-4" href="{% url 'predictions' %}">
+              <a class="nav-link fs-5" href="{% url 'predictions' %}">
                 <i class="material-icons">trending_up</i>
                 <span class="ms-2">Predictions</span>
               </a>
             </li>
             {% endif %}
             <li class="nav-item">
-              <a class="nav-link fs-4" href="#">
+              <a class="nav-link fs-5" href="#">
                 <i class="material-icons">thumb_up_alt</i>
                 <span class="ms-2">Recommendation</span>
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link fs-4" href="{% url 'blog' %}">
+              <a class="nav-link fs-5" href="{% url 'blog' %}">
                 <i class="material-icons">article</i>
                 <span class="ms-2">Blogs</span>
               </a>

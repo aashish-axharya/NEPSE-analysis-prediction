@@ -67,7 +67,7 @@ body {
   }
 
   .sidebar .nav-link {
-    font-size: 0.9rem;
+    font-size: 0.5rem;
   }
 
   .sidebar .nav-item {
@@ -93,4 +93,24 @@ main {
   margin-top: 20px;
   margin-bottom: 20px;
   margin-left:0;
+}
+
+.form-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.form-inline label {
+  margin-right: 10px;
+}
+
+.form-inline select {
+  flex: 1;
+  max-width: 200px;
+  margin-right: 10px;
+}
+
+.form-inline button {
+  margin-top: 10px;
 }

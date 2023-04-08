@@ -1,26 +1,35 @@
 {% extends "base.html" %}
 {% block title %}Analysis{% endblock %}
 {% block content %}
+<style>
+    .card {
+      margin-top: 20px;
+    }
+  </style>
+
 <div class="container">
     <h1>Analysis</h1>
-    <form method="POST">
+    <form method="POST" class="form-inline">
         {% csrf_token %}
         <label for="stock">Select Stock:</label>
-        <select class="form-control" name="stock" id="stock" onchange="this.form.submit()">
-            <option value="ADBL" {% if selected_stock=='ADBL' %}selected{% endif %}>ADBL</option>
-            <option value="MEGA" {% if selected_stock=='MEGA' %}selected{% endif %}>MEGA</option>
-            <option value="NABIL" {% if selected_stock=='NABIL' %}selected{% endif %}>NABIL</option>
-            <option value="NICA" {% if selected_stock=='NICA' %}selected{% endif %}>NICA</option>
-        </select>
+        <select class="form-control" name="stock" onchange="this.form.submit()">
+            {% for stock in stock_names %}
+            <option value="{{ stock }}" {% if selected_stock == stock %} selected {% endif %}>{{ stock }}</option>
+            {% endfor %}
+          </select>
     </form>
+    
     <div class="card">
         <div class="card-body">
-            <div id="analysis_graph">
-                {{ graph|safe }}
+            <div id="ma_graph">
+                {{ ma_graph|safe }}
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="rsi_graph">
+                {{ rsi_graph|safe }}
             </div>
         </div>
     </div>
-
 </div>
-
 {% endblock %}
