@@ -201,7 +201,7 @@ def predictions(request):
     )
 
     fig.update_yaxes(range =[df['Close'].min()-10, df['Close'].max()+10])
-    fig.update_xaxes(tickformat="%b %d")
+    fig.update_xaxes(tickformat="%d")
 
     plot_div = fig.to_html(full_html=False)
 
