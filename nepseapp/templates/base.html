@@ -12,7 +12,7 @@
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-  <nav class="navbar navbar-expand-md">
+  <nav class="navbar navbar-expand-md bg-dark">
     <div class="container">
       <a class="navbar-brand" href="{% url 'index' %}" style="color:#61892f">NepseApp</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
@@ -28,7 +28,7 @@
               {{ user.username }}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="#">Profile</a>
+              <a class="dropdown-item" href="{% url 'index' %}">Profile</a>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="{% url 'logout' %}?next=/success/">Logout</a>
             </div>
@@ -55,7 +55,7 @@
 
   <div class="container-fluid">
     <div class="row">
-      <nav class="col-md-2 col-lg-2 d-md-block bg-light sidebar">
+      <nav class="col-md-2 col-lg-2 d-md-block bg-dark sidebar">
         <div class="sidebar-sticky pt-3">
           <ul class="nav flex-column">
             <li class="nav-item">
@@ -111,10 +111,10 @@
       </main>
     </div>
   </div>
-  <footer class="bg-light">
+  <footer class="bg-dark footer border-top-1">
     <div class="container py-5">
       <div class="row justify-content-center mb-4">
-        <h5 class="text-center mb-3">CONNECT WITH ME</h5>
+        <h5 class="text-center mb-3" style="color: #61892f;">CONNECT WITH ME</h5>
         <ul class="list-unstyled d-flex justify-content-center">
           <li class="me-3">
             <a href="">

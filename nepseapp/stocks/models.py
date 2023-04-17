@@ -25,9 +25,23 @@ class StockData(models.Model):
     weeks52_high = models.CharField(max_length=10)
     weeks52_low = models.CharField(max_length=10)
 
+    def get_favorited_by(self):
+        favorites = Favorite.objects.filter(stock=self)
+        return [favorite.user for favorite in favorites]
+
 
 class BlogPost(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)
+
+class User(models.Model):
+    username = models.CharField(max_length=100)
+    email = models.EmailField()
+    password = models.CharField(max_length=100)
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    stock = models.ForeignKey(StockData, on_delete=models.CASCADE)

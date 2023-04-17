@@ -11,7 +11,7 @@ import csv
 import os
 import pandas as pd
 import numpy as np
-from .models import StockData, BlogPost
+from .models import StockData, BlogPost, Favorite
 import plotly.graph_objs as go
 from datetime import datetime
 from keras.models import load_model
@@ -296,48 +296,10 @@ def get_symbol_list():
     return symbols
 
 
-# def get_file_choices():
-#     file_list = os.listdir(os.path.join('static', 'data'))
-#     file_choices = []
-#     for file in file_list:
-#         if file.endswith('.csv'):
-#             file_choices.append(file)
-#     # show most recent first
-#     file_choices = sorted(file_choices, reverse=True)
-#     return file_choices
-
-# def getStockData(request, file_name):
-#     csv_file = os.path.join('static/data', file_name)
-#     data = []
-#     with open(csv_file, 'r') as file:
-#         reader = csv.DictReader(file)
-#         for row in reader:
-#             stock_data = {
-#                 'sn': row['SN'],
-#                 'symbol': row['Symbol'],
-#                 'company_name': row['Name'],
-#                 'conf': row['Conf'],
-#                 'open': row['Open'],
-#                 'high': row['High'],
-#                 'low': row['Low'],
-#                 'close': row['Close'],
-#                 'vwap': row['VWAP'],
-#                 'volume': row['Vol'],
-#                 'prev_close': row['Prev Close'],
-#                 'turnover': row['Turnover'],
-#                 'trans': row['Trans'],
-#                 'diff': row['Diff'],
-#                 'range': row['Range'],
-#                 'diff_percent': row['Diff Percent'],
-#                 'range_percent': row['Range Percent'],
-#                 'vwap_percent': row['VWAP%'],
-#                 'days120': row['120 days'],
-#                 'days180': row['180 days'],
-#                 'weeks52_high': row['52 weeks high'],
-#                 'weeks52_low': row['52 weeks low']
-#             }
-#             data.append(stock_data)
-#     StockData.objects.all().delete()  # Delete all existing objects
-#     # Create new objects from CSV data
-#     StockData.objects.bulk_create([StockData(**item) for item in data])
-#     return redirect('index')
+def profile(request):
+    favorite_stocks = Favorite.objects.filter(user=request.user).values_list('stock__company_name', flat=True)
+    context = {
+        'user': request.user,
+        'favorite_stocks': favorite_stocks,
+    }
+    return render(request, 'profile.html', context)

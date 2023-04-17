@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<h1>Welcome, {{ user.username }}!</h1>
+<p>Your email: {{ user.email }}</p>
+
+{% if favorite_stocks %}
+    <h2>Favorite Stocks</h2>
+    <ul>
+        {% for stock_name in favorite_stocks %}
+            <li>{{ stock_name }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endblock %}
