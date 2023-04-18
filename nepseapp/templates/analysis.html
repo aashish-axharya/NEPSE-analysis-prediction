@@ -1,11 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Analysis{% endblock %}
 {% block content %}
-<style>
-    .card {
-      margin-top: 20px;
-    }
-  </style>
 
 <div class="container">
     <h1>Analysis</h1>
@@ -32,4 +27,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Listen for form submission
+    document.querySelector('form[name="stock-form"]').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent the form from submitting normally
+  
+      // Get the selected option value
+      const selectedStock = document.querySelector('select[name="stock"]').value;
+  
+      // Set the value attribute of the select element to the selected option
+      document.querySelector('select[name="stock"]').value = selectedStock;
+    });
+  </script>
 {% endblock %}

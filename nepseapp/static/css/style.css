@@ -8,6 +8,8 @@ body {
 /* Navbar */
 .navbar {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  position:fixed;
+  width: 100%;
 }
 
 .navbar-brand {
@@ -22,10 +24,15 @@ body {
 .nav-item{
   margin-right: 10px;
   color:#61892f;
+  margin-bottom:40px;
 }
 
 .nav-item :hover{
   color: #fff;
+}
+
+.nav{
+  margin-top:30px;
 }
 
 .nav-link{
@@ -40,14 +47,13 @@ body {
 
 .dropdown-menu a:hover,
 .dropdown-menu a:focus {
-  background-color: #fff;
+  background-color: #333;
 }
   
 .sidebar-sticky {
-  position: relative;
-  top: 0;
+  position: fixed;
   height: calc(100vh - 48px);
-  padding-top: 0.5rem;
+  bottom: 0;
   overflow-x: hidden;
   z-index: 100;
   padding: 48px 0 0;
@@ -55,9 +61,6 @@ body {
   width: 300px;
 }
 
-/* .sidebar a {
-  color: #fff;
-} */
 
 .sidebar .nav-link i {
   margin-right: 0.5rem;
@@ -67,23 +70,10 @@ body {
   color: #61892f;
 }
 
-@media (max-width: 767.98px) {
-  .sidebar {
-    padding-top: 3.5rem;
-  }
-
-  .sidebar .nav-link {
-    font-size: 0.5rem;
-  }
-
-  .sidebar .nav-item {
-    margin-bottom: 0.25rem;
-  }
-
-  .sidebar .nav-item:last-child {
-    margin-bottom: 1rem;
-  }
+.main-block{
+  padding-top:8rem;
 }
+
 /* Main content styles */
 main {
   padding-top:-200px;

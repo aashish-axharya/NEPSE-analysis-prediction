@@ -205,7 +205,7 @@ def predictions(request):
 
     plot_div = fig.to_html(full_html=False)
 
-    return render(request, 'predictions.html', {'plot_div': plot_div, 'stock_names': symbols})
+    return render(request, 'predictions.html', {'plot_div': plot_div, 'stock_names': symbols, 'selected_stock': stock})
 
 
 def analysis(request):
@@ -274,7 +274,7 @@ def analysis(request):
                   line=dict(color="grey", width=1, dash="dot"))
 
     # Render the chart in the Django template
-    context = {'ma_graph': fig_ma.to_html(full_html=False), 'rsi_graph': fig_rsi.to_html(full_html=False), 'stock_names': symbols}
+    context = {'ma_graph': fig_ma.to_html(full_html=False), 'rsi_graph': fig_rsi.to_html(full_html=False), 'stock_names': symbols, 'selected_stock': stock}
     return render(request, 'analysis.html', context)
 
 def blog(request):
