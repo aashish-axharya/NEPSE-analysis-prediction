@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout as auth_logout
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
 from .forms import BlogPostForm
@@ -11,7 +11,7 @@ import csv
 import os
 import pandas as pd
 import numpy as np
-from .models import StockData, BlogPost, Favorite
+from .models import StockData, BlogPost, Favorite, User
 import plotly.graph_objs as go
 from datetime import datetime
 from keras.models import load_model
@@ -57,7 +57,7 @@ def logout(request):
 
 
 def index(request):
-    selected_date = '2023-03-16' #setting default date
+    selected_date = '2023-04-16' #setting default date
     try:
         date_selected = request.GET.get('selected_date')
         date_obj = datetime.strptime(date_selected, '%m/%d/%Y')
@@ -189,6 +189,9 @@ def predictions(request):
     pred_df = pd.DataFrame({'Date': pred_dates, 'Close': predicted_prices.ravel()})
     df = pd.concat([df, pred_df], ignore_index=True)
 
+    df['Close'] = pd.to_numeric(df['Close'], errors='coerce')
+    df['Close'] = df['Close'].astype(float) 
+    print(df['Close'].dtype)
     # Generate the plot
     fig = go.Figure()
     fig.add_trace(go.Scatter(
@@ -199,8 +202,7 @@ def predictions(request):
         xaxis_title='Date',
         yaxis_title='Price',
     )
-
-    fig.update_yaxes(range =[df['Close'].min()-10, df['Close'].max()+10])
+    
     fig.update_xaxes(tickformat="%d")
 
     plot_div = fig.to_html(full_html=False)
@@ -295,11 +297,12 @@ def get_symbol_list():
     symbols = ['ADBL', 'MEGA', 'NABIL', 'NICA']
     return symbols
 
-
+@login_required
 def profile(request):
-    favorite_stocks = Favorite.objects.filter(user=request.user).values_list('stock__company_name', flat=True)
+    user = User.objects.get(pk=request.user.pk) # retrieve User instance from the database
+    favorite_stocks = Favorite.objects.filter(user=user).values_list('stock__company_name', flat=True)
     context = {
-        'user': request.user,
+        'user': user,
         'favorite_stocks': favorite_stocks,
     }
     return render(request, 'profile.html', context)

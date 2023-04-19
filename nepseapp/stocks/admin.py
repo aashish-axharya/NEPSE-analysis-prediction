@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import StockData, BlogPost, User
+from .models import StockData, BlogPost, User, Favorite
 
 # Register your models here.
 class StockDataAdmin(admin.ModelAdmin):
@@ -18,6 +18,12 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ('username', 'email',)
     ordering = ('username',)
 
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'stock')
+    list_filter = ('user', 'stock')
+    search_fields = ('user__username', 'stock__company_name')
+
+admin.site.register(Favorite, FavoriteAdmin)
 admin.site.register(User, UserAdmin)
 admin.site.register(StockData, StockDataAdmin)
 admin.site.register(BlogPost, BlogPostAdmin)
