@@ -45,9 +45,8 @@ def login_view(request):
             login(request, user)
             return redirect('index')
         else:
-            # Add a message to inform the user that the login failed
-            message = 'Invalid username or password'
-            return render(request, 'login.html', {'message': message})
+            messages.error(request, 'Invalid username or password')
+            return render(request, 'login.html')
     return render(request, 'login.html')
 
 

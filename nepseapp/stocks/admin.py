@@ -12,18 +12,11 @@ class BlogPostAdmin(admin.ModelAdmin):
     list_filter = ('author', 'created_date')
     search_fields = ('title', 'content')
 
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email',)
-    list_filter = ('username', 'email',)
-    search_fields = ('username', 'email',)
-    ordering = ('username',)
-
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'stock')
     list_filter = ('user', 'stock')
     search_fields = ('user__username', 'stock__company_name')
 
 admin.site.register(Favorite, FavoriteAdmin)
-admin.site.register(User, UserAdmin)
 admin.site.register(StockData, StockDataAdmin)
 admin.site.register(BlogPost, BlogPostAdmin)
