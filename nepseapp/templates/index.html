@@ -35,8 +35,8 @@
     <div class="col-md-12">
       <h5 class="display-4 mb-4">Todays Prices</h5>
       <form id="date-form" method="GET" action="{% url 'index' %}">
+        <label for="datepicker">Select Date:</label>
         <div class="input-group date">
-          <label for="datepicker">Select Date:</label>
           <input type="text" class="form-control w-25 flex-grow-0" id="datepicker" name="selected_date"
             onchange="this.form.submit()">
         </div>
@@ -44,7 +44,7 @@
       <br>
       <br>
       <div class="row">
-        <p class="mb-4">Date: {{ selected_date }}</p>
+        <p class="mb-4" style="color:green">Date: {{ selected_date }}</p>
       </div>
       <div class="row">
         <div class="col-md-6">

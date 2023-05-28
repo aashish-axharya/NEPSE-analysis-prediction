@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout as auth_logout
-from django.contrib.auth.decorators import login_required
+from sklearn.preprocessing import StandardScaler
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.contrib import messages
 from .forms import BlogPostForm
@@ -56,7 +57,7 @@ def logout(request):
 
 
 def index(request):
-    selected_date = '2023-04-16' #setting default date
+    selected_date = '2023-05-24' #setting default date
     try:
         date_selected = request.GET.get('selected_date')
         date_obj = datetime.strptime(date_selected, '%m/%d/%Y')
@@ -127,8 +128,8 @@ def stocks(request):
     else:
         stock_data = []
 
-    # create a Paginator object with stock data and 10 items per page
-    paginator = Paginator(stock_data, 10)
+    # create a Paginator object with stock data and 50 items per page
+    paginator = Paginator(stock_data, 50)
 
     # get the current page number from the query string, default to 1
     page_number = request.GET.get('page', 1)
@@ -178,31 +179,27 @@ def predictions(request):
         x_recent = recent_data.reshape(1, 1, 60)
         predicted_price = model.predict(x_recent)
         df1 = np.append(df1, predicted_price)
-        
+
     # Inverse transform the predicted prices
     predicted_prices = scaler.inverse_transform(df1[-7:].reshape(-1, 1))
 
-    # Add the predicted prices to the dataframe
-    last_date = pd.to_datetime(df['Date'].max())
-    pred_dates = pd.date_range(last_date, periods=8, freq='D')[1:]
-    pred_df = pd.DataFrame({'Date': pred_dates, 'Close': predicted_prices.ravel()})
-    df = pd.concat([df, pred_df], ignore_index=True)
-
-    df['Close'] = pd.to_numeric(df['Close'], errors='coerce')
-    df['Close'] = df['Close'].astype(float) 
-    print(df['Close'].dtype)
     # Generate the plot
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-    x=df['Date'], y=df['Close'], name='Predicted Prices', mode='lines+markers'))
+        x=np.arange(1, 8), y=predicted_prices.ravel(), name='Predicted Prices', mode='lines+markers'))
+
+    min_price = np.min(predicted_prices)
+    max_price = np.max(predicted_prices)
 
     fig.update_layout(
-        title=f'{stock} Stock Prices Prediction',
-        xaxis_title='Date',
+        title=f'{stock} 7 day Stock Prices Prediction',
+        xaxis_title='Days',
         yaxis_title='Price',
+        yaxis=dict(
+            range=[min_price, max_price]
+        )
     )
     
-    fig.update_xaxes(tickformat="%d")
 
     plot_div = fig.to_html(full_html=False)
 
@@ -296,12 +293,32 @@ def get_symbol_list():
     symbols = ['ADBL', 'MEGA', 'NABIL', 'NICA']
     return symbols
 
-@login_required
+# def profile(request):
+#     return render(request, 'profile.html')
+
 def profile(request):
-    user = User.objects.get(pk=request.user.pk) # retrieve User instance from the database
-    favorite_stocks = Favorite.objects.filter(user=user).values_list('stock__company_name', flat=True)
+    user = request.user
+    user_instance = User.objects.get(username=user.username)
+    favorites = Favorite.objects.filter(user=user_instance)
+    stocks = StockData.objects.all()
+
+    if request.method == 'POST':
+        favorite_stock = request.POST.get('favorite_stock')
+        favorite = Favorite(user=user_instance, stock=favorite_stock)
+        favorite.save()
+
+        return redirect('profile')
+
+    favorite_stocks = []
+    for favorite in favorites:
+        stock = stocks.filter(sn=favorite.stock).first()
+        if stock:
+            favorite_stocks.append((stock.symbol, stock.company_name))
+
     context = {
-        'user': user,
-        'favorite_stocks': favorite_stocks,
+        'user': user_instance,
+        'favorites': favorite_stocks,
+        'stocks': stocks,
     }
+
     return render(request, 'profile.html', context)

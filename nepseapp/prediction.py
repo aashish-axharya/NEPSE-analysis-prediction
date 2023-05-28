@@ -30,6 +30,7 @@ def create_dataset(data, time_steps):
         x.append(a)
         y.append(data[i + time_steps, 0])
     return np.array(x), np.array(y)
+
 # Create Dataset
 time_steps = 60
 x_train, y_train = create_dataset(train_data, time_steps)
@@ -61,25 +62,25 @@ model.save(save_loc)
 # print('RMSE:', rmse_test)
 
 # Get the most recent 60 days of stock price data
-recent_data = df1[-60:]
+# recent_data = df1[-60:]
 
 # Reshape the data for the LSTM model
-x_recent = recent_data.reshape(1, 1, 60)
+# x_recent = recent_data.reshape(1, 1, 60)
 
-# Predict the stock prices for the next day and append to the input data
-predicted_price = model.predict(x_recent)
-df1 = np.append(df1, predicted_price)
+# # Predict the stock prices for the next day and append to the input data
+# predicted_price = model.predict(x_recent)
+# df1 = np.append(df1, predicted_price)
 
-# Shift the input data by one day
-for i in range(6):
-    recent_data = df1[-60:]
-    x_recent = recent_data.reshape(1, 1, 60)
-    predicted_price = model.predict(x_recent)
-    df1 = np.append(df1, predicted_price)
+# # Shift the input data by one day
+# for i in range(6):
+#     recent_data = df1[-60:]
+#     x_recent = recent_data.reshape(1, 1, 60)
+#     predicted_price = model.predict(x_recent)
+#     df1 = np.append(df1, predicted_price)
     
-# Inverse transform the predicted prices
-predicted_prices = scaler.inverse_transform(df1[-7:].reshape(-1, 1))
+# # Inverse transform the predicted prices
+# predicted_prices = scaler.inverse_transform(df1[-7:].reshape(-1, 1))
 
-# Print the predicted prices for the next 7 days
-df_predicted = pd.DataFrame(predicted_prices, columns=['Predicted Prices'])
-df_predicted.to_csv('predicted_prices.csv', index=False)
+# # Print the predicted prices for the next 7 days
+# df_predicted = pd.DataFrame(predicted_prices, columns=['Predicted Prices'])
+# df_predicted.to_csv('predicted_prices.csv', index=False)

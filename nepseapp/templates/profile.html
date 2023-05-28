@@ -1,15 +1,33 @@
 {% extends "base.html" %}
 {% block title %}Profile{% endblock %}
 {% block content %}
-<h1>Welcome, {{ user.username }}!</h1>
-<p>Your email: {{ user.email }}</p>
+    <h1>Welcome, {{ user.username }}!</h1>
 
-{% if favorite_stocks %}
-    <h2>Favorite Stocks</h2>
-    <ul>
-        {% for stock_name in favorite_stocks %}
-            <li>{{ stock_name }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
+    <div class="pb-5">
+        <div class="pt-5">
+            <h2>Your Favorite Stocks:</h2>
+            <ul class="list-group">
+                {% for favorite in favorites %}
+                    <li class="list-group-item">{{ favorite.0 }} - {{ favorite.1 }}</li>
+                {% empty %}
+                    <li class="list-group-item">No favorite stocks selected.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <div class="pt-5">
+            <h2>Choose Favorite Stock:</h2>
+            <form method="POST" action="{% url 'profile' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <select class="form-control" name="favorite_stock">
+                        {% for stock in stocks %}
+                            <option value="{{ stock.sn }}">{{ stock.sn }} - {{ stock.company_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn btn-primary" type="submit">Add Favorite</button>
+            </form>
+        </div>
+    </div>
 {% endblock %}
